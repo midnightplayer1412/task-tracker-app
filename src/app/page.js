@@ -1,101 +1,176 @@
-import Image from "next/image";
+"use client"
+import { useState } from "react"
+import { TextField, Divider } from "@mui/material"
+import { auth, db } from "@/firebase/firebase-config"
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
+import { setDoc, doc } from "firebase/firestore"
+
+const LoginComponent = ({switchToRegister}) => {
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleEmailSignIn = async(e) => {
+    e.preventDefault()
+    try{
+      setError('')
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+    }catch(error){
+      console.error('Error signing in: ', error)
+      if(error.code === 'auth/invalid-credential'){
+        setError("Wrong email or password")
+      }else if(error.code === 'auth/user-not-found'){
+          setError("No user found with this email address")
+      }else if(error.code === 'auth/invalid-email'){
+          setError("Please enter a valid email address")
+      }else{
+          setError("An error occurred. Please try again.")
+      }
+    }
+  }
+
+  const handleGoogleSignIn = async() => {
+    try{
+      const provider = new GoogleAuthProvider()
+      const result = await signInWithPopup(auth, provider)
+    }catch(error){
+      setError(error.message)
+      console.error('Error signing in with Google: ', error)
+    }
+  }
+
+  return(
+    <>
+    <form onSubmit={handleEmailSignIn} className="login-content-form flex flex-col gap-4 w-full">
+      <div className="login-content-heading text-5xl font-bold ">Sign In</div>
+      {error && (<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>)}
+      <div className="login-content-email">
+        <TextField label="Email" variant="outlined" type="email" fullWidth name="email" required value={email} onChange={(e) => setEmail(e.target.value)}/>
+      </div>
+      <div className="login-content-password">
+        <TextField label="Password" variant="outlined" type="password" fullWidth name="password" required value={password} onChange={(e) => {setPassword(e.target.value)}}/>
+      </div>
+      <button type="submit" className="login-content-signin text-lg text-center p-2 bg-amber-400 hover:bg-amber-300 rounded-lg font-bold cursor-pointer">Sign In</button>
+      <div className="login-content-divider text-lg text-slate-400"><Divider textAlign="center">or</Divider></div>
+      <button type="button" className="login-content-google text-lg text-center p-2 bg-slate-200 rounded-lg font-bold cursor-pointer" onClick={handleGoogleSignIn}>Google</button>
+      <button type="button" className="login-content-signup text-lg text-center p-2 rounded-lg font-bold cursor-pointer" onClick={switchToRegister}>Don't have an account? Sign up</button>
+    </form>
+    </>
+  )
+}
+
+const RegisterComponent = ({switchToLogin}) => {
+
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmpassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleUserRegister = async(e) =>{
+    e.preventDefault()
+    try{
+      console.warn(email, password)
+      setError('')
+      if(confirmpassword !== password){
+        setError("Password do not match")
+        return
+      }
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      try{
+        setDoc(doc(db, "Users", userCredential.user.uid), {
+          username: username,
+          email: email
+        })
+        console.warn("Register DB successful")
+      }catch(error){
+        // setError("Error creating Firestore DB: ", error)
+        console.error("Error creating Firestore DB: ", error)
+      }
+
+    }catch(error){
+      if(error.code === 'auth/invalid-credential'){
+        setError("Wrong email or password")
+      }else if(error.code === 'auth/user-not-found'){
+          setError("No user found with this email address")
+      }else if(error.code === 'auth/invalid-email'){
+          setError("Please enter a valid email address")
+      }else{
+          // setError("An error occurred. Please try again.")
+          setError(error.message)
+      }
+    }
+  }
+
+  return(
+    <>
+    <form onSubmit={handleUserRegister} className="register-content-form flex flex-col gap-4 w-full">
+      <div className="register-content-heading text-5xl font-bold">Sign Up</div>
+      {error && (<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>)}
+      <div className="register-content-username">
+        <TextField label="Username" variant="outlined" type="text" fullWidth name="username" required value={username} onChange={(e) => setUsername(e.target.value)}/>
+      </div>
+      <div className="register-content-email">
+        <TextField label="Email" variant="outlined" type="email" fullWidth name="email" required value={email} onChange={(e) => setEmail(e.target.value)}/>
+      </div>
+      <div className="register-content-password">
+        <TextField label="Password" variant="outlined" type="password" fullWidth name="password" required value={password} onChange={(e) => setPassword(e.target.value)}/>
+      </div>
+      <div className="register-content-confirm-password">
+        <TextField label="Confirm Password" variant="outlined" type="password" fullWidth name="confirm-password" required value={confirmpassword} onChange={(e) => setConfirmPassword(e.target.value)}/>
+      </div>
+      <button type="submit" className="register-content-register text-lg text-center p-2 bg-amber-400 hover:bg-amber-300 rounded-lg font-bold cursor-pointer">Sign Up</button>
+      <div className="register-content-divider text-lg text-slate-400">
+        <Divider textAlign="center">or</Divider>
+      </div>
+      <button type="button" className="register-content-signin text-lg text-center p-2 bg-slate-200 rounded-lg font-bold cursor-pointer" onClick={switchToLogin}>Already have an account? Sign in</button>
+    </form>
+    </>
+  )
+}
+
+const WelcomeComponent = ({handleGetStartedClick, handleSigninClick}) => {
+  return(
+    <>
+    <div className="login-form-heading text-5xl font-bold">Productive Mind</div>
+    <div className="login-from-desc text-lg text-justify">Helping you achieve your tasks and goals by keeping everything organized, clear, and actionable.</div>
+    <div className="login-form-signup text-lg text-center p-2 bg-amber-400 hover:bg-amber-300 rounded-lg font-bold cursor-pointer" onClick={handleGetStartedClick}>Get Started</div>
+    <div className="login-form-signin text-lg text-center p-2 hover:bg-slate-50 rounded-lg font-bold cursor-pointer" onClick={handleSigninClick}>Already have an account? Sign in</div>
+    </>
+  )
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const [isRegister, setRegister] = useState(false)
+  const [isLogin, setLogin] = useState(false)
+
+  const handleGetStartedClick = () =>{
+    setLogin(false)
+    setRegister(true)
+  }
+  const handleSigninClick = () => {
+    setRegister(false)
+    setLogin(true)
+  }
+
+  return (
+    <>
+    <div className="main-context h-full w-full flex items-center justify-center">
+      <div className="main-content h-5/6 w-3/4 flex gap-4 item-center justify-center">
+        <div className="landing-img rounded-3xl h-full w-1/2 relative">
+          <div className="text-4xl font-bold absolute top-10 left-10">Achieva</div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="login-form rounded-3xl border h-full w-1/2 flex items-center justify-center p-4">
+          <div className="login-form-details flex flex-col gap-4 w-3/4">
+            {!isRegister && !isLogin && (<WelcomeComponent handleGetStartedClick={handleGetStartedClick} handleSigninClick={handleSigninClick}/>)}
+            {isRegister && (<RegisterComponent switchToLogin={handleSigninClick} />)}
+            {isLogin && (<LoginComponent switchToRegister={handleGetStartedClick}/>)}
+          </div>
+        </div>
+      </div>
     </div>
+    </>
   );
 }
