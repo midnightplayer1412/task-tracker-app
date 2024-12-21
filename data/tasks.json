@@ -1,0 +1,54 @@
+[
+  {
+    "id": "task_01",
+    "userId": "user_01",
+    "listId": "list_01",
+    "title": "Prepare Meeting Notes",
+    "description": "Gather all documents and prepare notes for the meeting",
+    "tagIds": ["tag_02", "tag_01"],
+    "dueDate": "2024-12-23T10:00:00Z",
+    "isCompleted": false,
+    "createdAt": "2024-12-22T10:15:00Z",
+    "updatedAt": "2024-12-22T10:15:00Z",
+    "completedAt": null
+  },
+  {
+    "id": "task_02",
+    "userId": "user_01",
+    "listId": "list_02",
+    "title": "Grocery Shopping",
+    "description": "Buy fruits, vegetables, and dairy",
+    "tagIds": [],
+    "dueDate": "2024-12-22T18:00:00Z",
+    "isCompleted": false,
+    "createdAt": "2024-12-22T10:20:00Z",
+    "updatedAt": "2024-12-22T10:20:00Z",
+    "completedAt": null
+  },
+  {
+    "id": "task_03",
+    "userId": "user_02",
+    "listId": "list_03",
+    "title": "Fix Bug in Project A",
+    "description": "Resolve issue reported by QA team",
+    "tagIds": ["tag_03"],
+    "dueDate": "2024-12-23T15:00:00Z",
+    "isCompleted": false,
+    "createdAt": "2024-12-22T11:30:00Z",
+    "updatedAt": "2024-12-22T11:30:00Z",
+    "completedAt": null
+  },
+  {
+    "id": "task_04",
+    "userId": "user_01",
+    "listId": "list_01",
+    "title": "Send Project Update",
+    "description": "Email the project manager with the latest status",
+    "tagIds": ["tag_01"],
+    "dueDate": "2024-12-22T17:00:00Z",
+    "isCompleted": true,
+    "createdAt": "2024-12-22T10:25:00Z",
+    "updatedAt": "2024-12-22T10:25:00Z",
+    "completedAt": "2024-12-22T10:30:00Z"
+  }    
+]

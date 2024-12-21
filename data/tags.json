@@ -1,0 +1,23 @@
+[
+  {
+    "id": "tag_01",
+    "userId": "user_01",
+    "name": "High Priority",
+    "color": "#FF0000",
+    "createdAt": "2024-12-22T10:12:00Z"
+  },
+  {
+    "id": "tag_02",
+    "userId": "user_01",
+    "name": "Meeting",
+    "color": "#007BFF",
+    "createdAt": "2024-12-22T10:13:00Z"
+  },
+  {
+    "id": "tag_03",
+    "userId": "user_02",
+    "name": "Project A",
+    "color": "#28A745",
+    "createdAt": "2024-12-22T11:20:00Z"
+  }  
+]
