@@ -1,8 +1,10 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import LoginComponent from "./login"
 import RegisterComponent from "./register"
+import { useAuth } from "@/firebase/AuthContext"
+import { CircularProgress } from "@mui/material"
 
 const WelcomeComponent = ({handleGetStartedClick, handleSigninClick}) => {
   return(
@@ -17,9 +19,17 @@ const WelcomeComponent = ({handleGetStartedClick, handleSigninClick}) => {
 
 export default function Home() {
 
+  const {user, loading} = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if(!loading && user){
+      router.push('/dashboard')
+    }
+  }, [user, loading, router])
+
   const [isRegister, setRegister] = useState(false)
   const [isLogin, setLogin] = useState(false)
-  const router = useRouter()
 
   const handleAuthSuccess = () => {
     router.push('/dashboard')
@@ -35,6 +45,7 @@ export default function Home() {
 
   return (
     <>
+    {loading ? (<div className="main-context h-full w-full flex items-center justify-center"><CircularProgress/></div>) : !user ? (
     <div className="main-context h-full w-full flex items-center justify-center">
       <div className="main-content h-5/6 w-3/4 flex gap-4 item-center justify-center">
         <div className="landing-img rounded-3xl h-full w-1/2 relative">
@@ -49,6 +60,7 @@ export default function Home() {
         </div>
       </div>
     </div>
+    ) : null}
     </>
   );
 }

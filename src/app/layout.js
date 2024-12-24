@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LocalizationWrapper } from "./LocalizationWrapper";
+import { AuthProvider } from "@/firebase/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,9 +22,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <LocalizationWrapper>
-          {children}
-        </LocalizationWrapper>
+        <AuthProvider>
+          <LocalizationWrapper>
+            {children}
+          </LocalizationWrapper>
+        </AuthProvider>
       </body>
     </html>
   );

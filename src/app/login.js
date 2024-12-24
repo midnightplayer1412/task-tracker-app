@@ -1,8 +1,9 @@
 "use client"
 import { useState } from "react"
-import { auth } from "@/firebase/firebase-config"
+import { auth, db } from "@/firebase/firebase-config"
 import { TextField, Divider } from "@mui/material"
 import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
+import { doc, getDoc, setDoc } from "firebase/firestore"
 
 const LoginComponent = ({switchToRegister, onSuccess}) => {
   const [email, setEmail] = useState('');
@@ -30,17 +31,45 @@ const LoginComponent = ({switchToRegister, onSuccess}) => {
     }
   }
   
+  const createUserRecord = async (uid, username, email) => {
+    const userRef = doc(db, "Users", uid);
+    try {
+      const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+        await setDoc(userRef, {
+          username: username || "Unknown User",
+          email: email
+        });
+        console.log("User record created in Firestore")
+      } else {
+        console.log("User already exists in Firestore")
+      }
+    } catch (error) {
+      console.error('Error creating user record: ', error)
+    }
+  }
+
+
   const handleGoogleSignIn = async() => {
     try{
       const provider = new GoogleAuthProvider()
       const result = await signInWithPopup(auth, provider)
-      console.log("Login Successful")
-      onSuccess()
+      console.log(result)
+      const user = result.user
+      console.warn(user.email, user.displayName)
+      if(user){
+        await createUserRecord(user.uid, user.displayName, user.email)
+        console.log("Login Successful")
+        onSuccess()
+      }else{
+        setError("No user information received")
+      }
     }catch(error){
       setError(error.message)
       console.error('Error signing in with Google: ', error)
     }
   }
+
 
   return(
     <>
