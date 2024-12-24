@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Add, Search, Menu, KeyboardDoubleArrowRight, ChevronLeft, ChecklistRtl, Settings, ExitToApp } from '@mui/icons-material';
 import { useAuth } from '@/firebase/AuthContext';
 
-export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, createListModal, createTagModal}) => {
+export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, createListModal, createTagModal, searchKeyword}) => {
 
   const {logout} = useAuth()
   const [navOpen, setNavOpen] = useState(true);
@@ -19,7 +19,8 @@ export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, 
 
   useEffect(() => {
     onTaskSelect(showTask)
-  }, [showTask])
+    searchKeyword(searchTerm)
+  }, [showTask, searchTerm])
 
   return(
     <>

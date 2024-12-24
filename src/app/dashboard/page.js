@@ -208,13 +208,20 @@ export default function Dashboard () {
     }
   }
 
+  // Use to handle the search keyword
+  const [searchKeyword, setSearchKeyword] = useState('')
+  const handleSearchTerm = (words) => {
+    console.log("The search term: ", words)
+    setSearchKeyword(words)
+  }
+
   return(
     <>
     <div className="main-dashboard w-full h-full flex justify-center items-center p-4">
       <div className="dashboard-content w-full h-full flex gap-4">
-        <NavigationBar onListSelect={setShowList} onTaskSelect={setShowTask} userLists={userLists} userTags={userTags} createListModal={handleOpenCreateListModal} createTagModal={handleOpenCreateTagModal}/>
+        <NavigationBar onListSelect={setShowList} onTaskSelect={setShowTask} userLists={userLists} userTags={userTags} createListModal={handleOpenCreateListModal} createTagModal={handleOpenCreateTagModal} searchKeyword={handleSearchTerm}/>
         {/* <Content userLists={userLists} userTasks={userTasks} selectedList={selectedList} onTaskSelect={setSelectedTask} createTaskModal={handleOpenCreateTaskModal}/> */}
-        <Content userLists={userLists} userTasks={userTasks} showList={showList} showTask={showTask} createTaskModal={handleOpenCreateTaskModal} selectedTask={setSelectedTask}/>
+        <Content userLists={userLists} userTasks={userTasks} showList={showList} showTask={showTask} createTaskModal={handleOpenCreateTaskModal} selectedTask={setSelectedTask} searchKeyword={searchKeyword}/>
         {selectedTask && (
           <TaskDetails userTasks={selectedTask} userLists={userLists} userTags={userTags} onClose={() => setSelectedTask(null)}/>
         )}
