@@ -1,8 +1,7 @@
 // `src\app\dashboard\page.js`
 "use client"
-import { Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { createNewList, createNewTag, createNewTask, getUserLists, getUserTags, getUserTasks } from '@/function/taskFunction';
+import { createNewList, createNewTag, createNewTask, getUserLists, getUserTags, getUserTasks, LISTS_KEY, setLocalData, TASKS_KEY,  } from '@/function/taskFunction';
 import { useAuth } from '@/firebase/AuthContext';
 import { NavigationBar } from './Navigation';
 import { Content } from './Content';
@@ -11,6 +10,7 @@ import { TaskModal } from './TaskModal';
 import { ListModal } from './ListModal';
 import { useRouter } from 'next/navigation';
 import { TagModal } from './TagModal';
+import { SettingModal } from './SettingModal';
 // const lists = [
 //   {
 //     "id": "list_01",
@@ -137,6 +137,7 @@ export default function Dashboard () {
         try{
           const lists = await getUserLists(user.uid)
           setUserLists(lists)
+          setLocalData(LISTS_KEY, lists)
         }catch(error){
           console.error('Error fetching lists: ', error)
         }
@@ -145,6 +146,7 @@ export default function Dashboard () {
         try{
           const tasks = await getUserTasks(user.uid)
           setUserTasks(tasks)
+          setLocalData(TASKS_KEY, tasks)
         }catch(error){
           console.error('Error fetching tasks: ', error)
         }
@@ -167,12 +169,15 @@ export default function Dashboard () {
   const [createTaskModal, setCreateTaskModal] = useState(false)
   const [createListModal, setCreateListModal] = useState(false)
   const [createTagModal, setCreateTagModal] = useState(false)
-  const handleOpenCreateTaskModal = () => {setCreateTaskModal(true)};
-  const handleCloseCreateTaskModal = () => {setCreateTaskModal(false)};
-  const handleOpenCreateListModal = () => {setCreateListModal(true)};
-  const handleCloseCreateListModal = () => {setCreateListModal(false)};
+  const [createSettingModal, setCreateSettingModal] = useState(false)
+  const handleOpenCreateTaskModal = () => {setCreateTaskModal(true)}
+  const handleCloseCreateTaskModal = () => {setCreateTaskModal(false)}
+  const handleOpenCreateListModal = () => {setCreateListModal(true)}
+  const handleCloseCreateListModal = () => {setCreateListModal(false)}
   const handleOpenCreateTagModal = () => {setCreateTagModal(true)}
   const handleCloseCreateTagModal = () => {setCreateTagModal(false)}
+  const handleOpenSettingModal = () => {setCreateSettingModal(true)}
+  const handleCloseCreateSettingModal = () => {setCreateSettingModal(false)}
 
   const handleSubmitTask = async({taskTitle, taskDesc, selectedList}) => {
     const userId = user.uid
@@ -219,15 +224,16 @@ export default function Dashboard () {
     <>
     <div className="main-dashboard w-full h-full flex justify-center items-center p-4">
       <div className="dashboard-content w-full h-full flex gap-4">
-        <NavigationBar onListSelect={setShowList} onTaskSelect={setShowTask} userLists={userLists} userTags={userTags} createListModal={handleOpenCreateListModal} createTagModal={handleOpenCreateTagModal} searchKeyword={handleSearchTerm}/>
+        <NavigationBar onListSelect={setShowList} onTaskSelect={setShowTask} userLists={userLists} userTags={userTags} createListModal={handleOpenCreateListModal} createTagModal={handleOpenCreateTagModal} createSettingModal={handleOpenSettingModal} searchKeyword={handleSearchTerm}/>
         {/* <Content userLists={userLists} userTasks={userTasks} selectedList={selectedList} onTaskSelect={setSelectedTask} createTaskModal={handleOpenCreateTaskModal}/> */}
-        <Content userLists={userLists} userTasks={userTasks} showList={showList} showTask={showTask} createTaskModal={handleOpenCreateTaskModal} selectedTask={setSelectedTask} searchKeyword={searchKeyword}/>
+        <Content userLists={userLists} userTasks={userTasks} userTags={userTags} showList={showList} showTask={showTask} createTaskModal={handleOpenCreateTaskModal} selectedTask={setSelectedTask} searchKeyword={searchKeyword}/>
         {selectedTask && (
           <TaskDetails userTasks={selectedTask} userLists={userLists} userTags={userTags} onClose={() => setSelectedTask(null)}/>
         )}
         <TaskModal open={createTaskModal} userLists={userLists} handleClose={handleCloseCreateTaskModal} onSubmit={handleSubmitTask}/>
         <ListModal open={createListModal} handleClose={handleCloseCreateListModal} onSubmit={handleCreateNewList}/>
         <TagModal open={createTagModal} handleClose={handleCloseCreateTagModal} onSubmit={handleCreateNewTag}/>
+        <SettingModal open={createSettingModal} handleClose={handleCloseCreateSettingModal} tasks={userTasks}/>
       </div>
     </div>
     </>

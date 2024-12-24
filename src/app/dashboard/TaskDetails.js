@@ -1,6 +1,6 @@
-import { Checkbox, MenuItem, Select, TextField } from '@mui/material';
+import { Checkbox, Menu, MenuItem, Select, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Close } from '@mui/icons-material';
+import { Add, Close } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { deleteTask, updateTask } from '@/function/taskFunction';
@@ -12,7 +12,6 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
     return null
   }
   
-  const taskList = userLists.find(l => l.id === userTasks.listId)
   const taskTags = userTags.filter(tag => userTasks.tagIds.includes(tag.id))
   
   const [taskId, setTaskId] = useState(userTasks.id)
@@ -21,6 +20,7 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
   const [taskDesc, setTaskDesc] = useState(userTasks.description)
   const [taskName, setTaskName] = useState(userTasks.title)
   const [taskCompleted, setTaskCompleted] = useState(userTasks.isCompleted)
+  const [taskTag, setTaskTag] = useState(userTasks.tagIds)
   
   const handleListChange = (event) => {
     const newListId = event.target.value;
@@ -34,7 +34,8 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
       listId: selectedList,
       dueDate: selectedDate.toISOString(),
       isCompleted: taskCompleted,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      tagIds: taskTag
     }
     try{
       await updateTask(taskId, taskData)
@@ -60,7 +61,36 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
     setTaskDesc(userTasks.description);
     setTaskName(userTasks.title);
     setTaskCompleted(userTasks.isCompleted);
+    setTaskTag(userTasks.tagIds)
+    setSelectedTag(null)
+    console.warn("The taskTags is ", taskTags)
+    console.warn("The taskTag is ", taskTag)
   }, [userTasks])
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedTag, setSelectedTag] = useState(null)
+
+  // Handle opening and closing of the dropdown menu
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  // Handle tag selection
+  const handleTagSelect = (tag) => {
+    setSelectedTag(tag)
+    console.log("The selected tag is :", tag.name)
+    setTaskTag(prevTags => {
+      if(!prevTags.includes(tag.id)){
+        return [...prevTags, tag.id]
+      }
+      return prevTags
+    })
+    setAnchorEl(null); // Close the dropdown
+  };
   
   return(
     <>
@@ -70,7 +100,7 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
           <Checkbox
             color="success"
             size="large"
-            checked={taskCompleted}
+            checked={Boolean(taskCompleted)}
             onChange={() => setTaskCompleted(!taskCompleted)}
           />
           <h2 className="text-2xl font-bold">Task Details</h2>
@@ -142,6 +172,26 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
                 <div>{tag.name}</div>
               </div>
             ))}
+            {selectedTag && (
+              <div className="td-content-tag-value px-2 py-1 rounded text-sm" style={{backgroundColor:selectedTag.color}} key={selectedTag.id} value={selectedTag.id}>
+                <div>{selectedTag.name}</div>
+              </div>
+            )}
+            <button className="bg-stone-200 rounded flex pr-2 py-1 justify-evenly items-center" onClick={handleClick}>
+              <Add/>
+              Add a tag
+            </button>
+            <Menu
+              anchorEl={anchorEl} // Anchor element for the dropdown
+              open={Boolean(anchorEl)} // Menu is open if anchorEl is set
+              onClose={handleClose} // Close the dropdown
+            >
+              {userTags.map((tag) => (
+                <MenuItem key={tag.id} onClick={() => handleTagSelect(tag)}>
+                  {tag.name}
+                </MenuItem>
+              ))}
+            </Menu>
           </div>
         </div>
       </div>

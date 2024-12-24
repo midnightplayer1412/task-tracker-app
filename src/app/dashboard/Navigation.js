@@ -1,9 +1,9 @@
 import { Divider, InputAdornment, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Add, Search, Menu, KeyboardDoubleArrowRight, ChevronLeft, ChecklistRtl, Settings, ExitToApp } from '@mui/icons-material';
+import { Add, Search, Menu, KeyboardDoubleArrowRight, ChevronLeft, ChecklistRtl, Tune, Logout } from '@mui/icons-material';
 import { useAuth } from '@/firebase/AuthContext';
 
-export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, createListModal, createTagModal, searchKeyword}) => {
+export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, createListModal, createTagModal, createSettingModal, searchKeyword}) => {
 
   const {logout} = useAuth()
   const [navOpen, setNavOpen] = useState(true);
@@ -116,12 +116,12 @@ export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, 
       <div className="navigation-bar-bottom">
         {/* Setting Section */}
         <div className="setting-section flex flex-col gap-4 text-xl">
-          <button className="setting-section-setting flex gap-4 items-center">
-            <Settings/>
+          <button className="setting-section-setting flex gap-4 items-center" onClick={createSettingModal}>
+            <Tune/>
             <div className="setting-label">Setting</div>
           </button>
           <button className="setting-section-signout flex gap-4 items-center" onClick={logout}>
-            <ExitToApp/>
+            <Logout/>
             <div className="signout-label">Sign Out</div>
           </button>
         </div>

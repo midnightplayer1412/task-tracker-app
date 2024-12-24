@@ -1,10 +1,11 @@
 import { db } from "@/firebase/firebase-config"
 import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, updateDoc, where } from "firebase/firestore"
-
+import * as XLSX from "xlsx"
+import Papa from "papaparse"
 
 // Local Storage
-const TASKS_KEY = 'tasks'
-const LISTS_KEY = 'lists'
+export const TASKS_KEY = 'tasks'
+export const LISTS_KEY = 'lists'
 const TAGS_KEY = 'tags'
 
 // Firestore Collection
@@ -61,7 +62,7 @@ export const getUserLists = async(userId) => {
 }
 
 // Create new task
-export const createNewTask = async(userId, listId, taskName, taskDesc, tagId, dueDate) => {
+export const createNewTask = async(userId, listId, taskName, taskDesc, tagId, dueDate, isCompleted) => {
   try{
     const taskRef = collection(db, TASKS_COLLECTION)
     const newTask = await addDoc(taskRef, {
@@ -71,7 +72,7 @@ export const createNewTask = async(userId, listId, taskName, taskDesc, tagId, du
       description: taskDesc,
       tagIds: tagId || [],
       dueDate: dueDate,
-      isCompleted: false,
+      isCompleted: isCompleted || false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       completedAt: null
@@ -153,4 +154,34 @@ export const deleteTask = async(taskId) => {
   }catch(error){
     console.error('Error deleting task: ', error)
   }
+}
+
+// Parse CSV file
+export const parseCSV = (file) => {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      complete: (result) => {
+        resolve(result.data)
+      },
+      header: true,
+      skipEmptyLines: true,
+      error: (err) => reject(err)
+    })
+  })
+}
+
+// Parse Excel file
+export const parseExcel = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result)
+      const workbook = XLSX.read(data, {type:'array'})
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const json = XLSX.utils.sheet_to_json(sheet, {header: 1})
+      resolve(json)
+    }
+    reader.onerror = (err) => reject(err)
+    reader.readAsArrayBuffer(file)
+  })
 }

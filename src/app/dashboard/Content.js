@@ -3,7 +3,7 @@ import { Checkbox, IconButton, Pagination, Menu, MenuItem, Tooltip } from '@mui/
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 
-export const Content = ({userLists, showList, userTasks, showTask, createTaskModal, selectedTask, searchKeyword}) => {
+export const Content = ({userLists, showList, userTasks, userTags, showTask, createTaskModal, selectedTask, searchKeyword}) => {
 
   const [filteredTasks, setFilteredTasks] = useState([])
   const [selectTask, onTaskSelect] = useState(null)
@@ -59,7 +59,7 @@ export const Content = ({userLists, showList, userTasks, showTask, createTaskMod
   }
 
   const getTaskTags = (tagIds) => {
-    return tags.filter(tag => tagIds.includes(tag.id))
+    return userTags.filter(tag => tagIds.includes(userTags.id))
   }
 
   useEffect(() => {
@@ -173,7 +173,7 @@ export const Content = ({userLists, showList, userTasks, showTask, createTaskMod
                       <span
                       key={tag.id}
                       className="px-2 py-1 rounded text-sm"
-                      style={{ backgroundColor: tag.color + '40' }}
+                      style={{ backgroundColor: tag.color}}
                       >
                         {tag.name}
                       </span>
