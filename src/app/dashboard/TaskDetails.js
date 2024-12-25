@@ -1,6 +1,6 @@
 import { Checkbox, Menu, MenuItem, Select, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Add, Close } from '@mui/icons-material';
+import { Add, Close, Remove } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { deleteTask, updateTask } from '@/function/taskFunction';
@@ -21,6 +21,23 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
   const [taskName, setTaskName] = useState(userTasks.title)
   const [taskCompleted, setTaskCompleted] = useState(userTasks.isCompleted)
   const [taskTag, setTaskTag] = useState(userTasks.tagIds)
+  const [displayTag, setDisplayTag] = useState(userTags.filter(tag => userTasks.tagIds.includes(tag.id)))
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedTag, setSelectedTag] = useState(null)
+  
+  useEffect(() => {
+    setTaskId(userTasks.id)
+    setSelectedList(userTasks.listId);
+    setSelectedDate(dayjs(userTasks.dueDate))
+    setTaskDesc(userTasks.description);
+    setTaskName(userTasks.title);
+    setTaskCompleted(userTasks.isCompleted);
+    setTaskTag(userTasks.tagIds)
+    setDisplayTag(userTags.filter(tag => userTasks.tagIds.includes(tag.id)))
+    setSelectedTag(null)
+    // console.warn("The taskTags is ", taskTags)
+    // console.warn("The taskTag is ", taskTag)
+  }, [userTasks])
   
   const handleListChange = (event) => {
     const newListId = event.target.value;
@@ -54,21 +71,7 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
     }
   }
   
-  useEffect(() => {
-    setTaskId(userTasks.id)
-    setSelectedList(userTasks.listId);
-    setSelectedDate(dayjs(userTasks.dueDate))
-    setTaskDesc(userTasks.description);
-    setTaskName(userTasks.title);
-    setTaskCompleted(userTasks.isCompleted);
-    setTaskTag(userTasks.tagIds)
-    setSelectedTag(null)
-    console.warn("The taskTags is ", taskTags)
-    console.warn("The taskTag is ", taskTag)
-  }, [userTasks])
 
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedTag, setSelectedTag] = useState(null)
 
   // Handle opening and closing of the dropdown menu
   const handleClick = (event) => {
@@ -81,20 +84,22 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
 
   // Handle tag selection
   const handleTagSelect = (tag) => {
-    setSelectedTag(tag)
-    console.log("The selected tag is :", tag.name)
-    setTaskTag(prevTags => {
-      if(!prevTags.includes(tag.id)){
-        return [...prevTags, tag.id]
-      }
-      return prevTags
-    })
-    setAnchorEl(null); // Close the dropdown
+    if(!taskTag.includes(tag.id)){
+      setTaskTag(prevTags => [...prevTags, tag.id])
+      setDisplayTag(prevTags => [...prevTags, tag])
+    }
+    setSelectedTag(null)
+    setAnchorEl(null)
   };
+
+  const handleRemoveTag = (tagId) => {
+    setTaskTag(prevTags => prevTags.filter(id => id !== tagId))
+    setDisplayTag(prevTags => prevTags.filter(tag => tag.id !== tagId))
+  }
   
   return(
     <>
-    <div className="task-details-content bg-stone-100 w-96 h-full overflow-auto flex flex-col p-4 rounded-3xl justify-between">
+    <div className="task-details-content bg-stone-100 w-96 overflow-auto flex flex-col p-4 rounded-3xl justify-between">
       <div className="task-details-top flex flex-col h-full">
         <div className="task-details-menu flex justify-between items-center mb-6">
           <Checkbox
@@ -163,39 +168,44 @@ export const TaskDetails = ({userTasks, userLists, userTags, onClose}) => {
                 }}
               />
           </div>
-          <div className="td-content-tag flex items-center gap-4">
+          <div className="td-content-tag flex gap-4">
             <div className="td-content-tag-label font-semibold text-gray-600">
               Tags
             </div>
-            {taskTags.map((tag) => (
-              <div className="td-content-tag-value px-2 py-1 rounded text-sm" style={{backgroundColor:tag.color}} key={tag.id} value={tag.id}>
-                <div>{tag.name}</div>
-              </div>
-            ))}
-            {selectedTag && (
-              <div className="td-content-tag-value px-2 py-1 rounded text-sm" style={{backgroundColor:selectedTag.color}} key={selectedTag.id} value={selectedTag.id}>
-                <div>{selectedTag.name}</div>
-              </div>
-            )}
-            <button className="bg-stone-200 rounded flex pr-2 py-1 justify-evenly items-center" onClick={handleClick}>
-              <Add/>
-              Add a tag
-            </button>
-            <Menu
-              anchorEl={anchorEl} // Anchor element for the dropdown
-              open={Boolean(anchorEl)} // Menu is open if anchorEl is set
-              onClose={handleClose} // Close the dropdown
-            >
-              {userTags.map((tag) => (
-                <MenuItem key={tag.id} onClick={() => handleTagSelect(tag)}>
-                  {tag.name}
-                </MenuItem>
+            <div className="flex gap-4 flex flex-wrap overflow-auto max-h-40">
+              {displayTag.map((tag) => (
+                <button className="td-content-tag-value px-2 py-1 rounded text-sm flex items-center gap-1" style={{backgroundColor:tag.color}} key={tag.id} onClick={() => handleRemoveTag(tag.id)}>
+                  <Remove/>
+                  <div className='flex items-center'>{tag.name}</div>
+                </button>
               ))}
-            </Menu>
+              {/* {selectedTag && (
+                <div className="td-content-tag-value px-2 py-1 rounded text-sm flex items-center" style={{backgroundColor:selectedTag.color}} key={selectedTag.id} value={selectedTag.id}>
+                  <div>{selectedTag.name}</div>
+                </div>
+              )} */}
+              <button className="bg-stone-200 rounded flex pr-2 py-1 justify-evenly items-center" onClick={handleClick}>
+                <Add/>
+                Add a tag
+              </button>
+              <Menu
+                anchorEl={anchorEl} // Anchor element for the dropdown
+                open={Boolean(anchorEl)} // Menu is open if anchorEl is set
+                onClose={handleClose} // Close the dropdown
+              >
+                {userTags.map((tag) => (
+                  <MenuItem key={tag.id} onClick={() => handleTagSelect(tag)}>
+                    <div>
+                      {tag.name}
+                    </div>
+                  </MenuItem>
+                ))}
+              </Menu>
+            </div>
           </div>
         </div>
       </div>
-      <div className="task-detaisl-bottom flex justify-between items-center gap-4">
+      <div className="task-details-bottom flex justify-between items-center gap-4 mt-8">
         <button className="flex-1 p-3 rounded-lg border border-stone-300 hover:bg-stone-200" onClick={handleDeleteTask}>Delete Task</button>
         <button className="flex-1 p-3 rounded-lg bg-amber-400 hover:bg-amber-300" onClick={handleSaveChange}>Save Change</button>
       </div>

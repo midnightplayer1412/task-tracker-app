@@ -185,3 +185,25 @@ export const parseExcel = (file) => {
     reader.readAsArrayBuffer(file)
   })
 }
+
+// Delete list
+export const deleteList = async(listId) => {
+  try{
+    const listRef = doc(db, LISTS_COLLECTION, listId)
+    await deleteDoc(listRef)
+    console.warn('List deleted successfully')
+  }catch(error){
+    console.error('Error deleting task: ', error)
+  }
+}
+
+// Delete tag
+export const deleteTag = async(tagId) => {
+  try{
+    const tagRef = doc(db, TAGS_COLLECTION, tagId)
+    await deleteDoc(tagRef)
+    console.warn('Tag deleted successfully')
+  }catch(error){
+    console.error('Error deleting task: ', error)
+  }
+}

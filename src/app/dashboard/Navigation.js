@@ -1,7 +1,8 @@
 import { Divider, InputAdornment, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Add, Search, Menu, KeyboardDoubleArrowRight, ChevronLeft, ChecklistRtl, Tune, Logout } from '@mui/icons-material';
+import { Add, Search, Menu, KeyboardDoubleArrowRight, ChevronLeft, ChecklistRtl, Tune, Logout, Edit, RemoveCircleOutline, Cancel } from '@mui/icons-material';
 import { useAuth } from '@/firebase/AuthContext';
+import { deleteList, deleteTag, getUserTasks, updateTask } from '@/function/taskFunction';
 
 export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, createListModal, createTagModal, createSettingModal, searchKeyword}) => {
 
@@ -10,6 +11,9 @@ export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, 
   const [showTask, setShowTask] = useState('Today')
   const [listSelected, setListSelected] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [removeList, setRemoveList] = useState(false)
+  const [removeTag, setRemoveTag] = useState(false)
+  const {user} = useAuth()
 
   const handleListClick = (listId) => {
     setListSelected(listId)
@@ -17,10 +21,29 @@ export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, 
     setShowTask(null)
   };
 
+  const handleRemoveList = async(listId) => {
+    const tasks = await getUserTasks(user.uid)
+    const tasksOnlyList = tasks.filter((task) => task.listId === listId)
+    tasksOnlyList.forEach(async(task) => {
+      await updateTask(task.id, {listId: ''})
+    })
+    await deleteList(listId)
+  }
+
+  const handleRemoveTag = async(tagId) => {
+    const tasks = await getUserTasks(user.uid)
+    const tasksOnlyTag = tasks.filter((task) => task.tagIds.includes(tagId))
+    tasksOnlyTag.forEach(async(task) => {
+      const updatedTag = task.tagIds.filter(id => id !== tagId)
+      await updateTask(task.id, {tagIds: updatedTag})
+    })
+    await deleteTag(tagId)
+  }
+
   useEffect(() => {
     onTaskSelect(showTask)
     searchKeyword(searchTerm)
-  }, [showTask, searchTerm])
+  }, [showTask, searchTerm, removeList, removeTag])
 
   return(
     <>
@@ -71,17 +94,23 @@ export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, 
           <Divider/>
           {/* Lists Section */}
           <div className="list-section flex flex-col gap-4">
-            <div className="list-section-title uppercase text-sm font-bold">
-              Lists
+            <div className="list-section-title uppercase text-sm font-bold flex justify-between items-center">
+              <div>Lists</div>
+              <button onClick={() => setRemoveList(!removeList)} title='Remove lists'>
+                <Edit fontSize='small'/>
+              </button>
             </div>
             <div className="list-section-content flex flex-col gap-4">
               <div className="list-section-lists flex flex-col gap-4 text-lg px-2 max-h-40 overflow-y-auto">
                 {/* Lists mapping */}
                 {userLists.map(list => (
-                  <button className="lists-content flex items-center gap-4" key={list.id} onClick={() => handleListClick(list.id)}>
-                    <div className="lists-content-color rounded-md w-6 h-6" style={{backgroundColor: list.color}}></div>
-                    <div className="lists-content-title">{list.name}</div>
-                  </button>
+                  <div className="flex justify-between items-center" key={list.id}>
+                    <button className="lists-content flex items-center gap-4 w-full" onClick={() => handleListClick(list.id)}>
+                      <div className="lists-content-color rounded-md w-6 h-6" style={{backgroundColor: list.color}}></div>
+                      <div className="lists-content-title">{list.name}</div>
+                    </button>
+                    {removeList && (<button className="flex items-center" onClick={()=> handleRemoveList(list.id)}><RemoveCircleOutline color='disabled'/></button>)}
+                  </div>
                 ))}
               </div>
               <button className="lists-content flex items-center gap-4 px-2" onClick={createListModal}>
@@ -93,14 +122,23 @@ export const NavigationBar = ({onListSelect, onTaskSelect, userLists, userTags, 
           <Divider/>
           {/* Tags Section */}
           <div className="tag-section flex flex-col gap-4">
-            <div className="tag-section-title uppercase text-sm font-bold">
-              Tags
+            <div className="tag-section-title uppercase text-sm font-bold flex justify-between items-center">
+              <div>Tags</div>
+              <button onClick={() => setRemoveTag(!removeTag)} title='Remove tags'>
+                <Edit fontSize='small'/>
+              </button>
             </div>
             <div className="tag-section-content flex flex-col gap-4">
-              <div className="tag-section-tags flex flex-auto gap-2 text-md font-semibold max-h-40 flex-wrap overflow-auto">
+              <div className="tag-section-tags flex flex-auto gap-2 text-md max-h-40 flex-wrap overflow-auto">
                 {/* Tags mapping */}
                 {userTags.map(tag => (
-                  <div className="tags-title px-2 py-1 rounded bg-red-200" key={tag.id} style={{backgroundColor: tag.color}}>{tag.name}</div>
+                  <div className="tag-unique relative p-2 rounded rounded-lg flex gap-2 items-center" style={{backgroundColor: tag.color}} key={tag.id}>
+                    <button className="tags-title">{tag.name}</button>
+                    {removeTag && (
+                      <button className="tags-remove-button" onClick={() => handleRemoveTag(tag.id)}>
+                        <Cancel fontSize='small'/>
+                      </button>)}
+                  </div>
                 ))}
               </div>
               <button className="tag-section-add flex items-center gap-4 px-2 " onClick={createTagModal}>
